@@ -1,64 +1,36 @@
-class Api::V1::RecipesController < Api::V1::BaseController
-  before_action :set_recipe, only: [:show, :destroy]
-
-  def index
-    recipes = Recipe.by_user(current_user_id).recent
-    render_success(recipes)
-  end
-
-  def show
-    render_success(@recipe)
-  end
-
-  def create
-    recipe = Recipe.new(recipe_params)
-    recipe.user_id = current_user_id
-
-    if recipe.save
-      render_success(recipe, 'Recipe created successfully')
-    else
-      render_error(recipe.errors.full_messages.join(', '))
-    end
-  end
-
-  def generate
-    begin
-      user_ingredients = Ingredient.by_user(current_user_id)
-      
-      if user_ingredients.empty?
-        return render_error('No ingredients found for user')
+module Api
+  module V1
+    class RecipesController < Api::V1::BaseController
+      def index
+        status, data = Api::V1::Recipes::IndexUsecase.new(current_user_id).execute
+        render json: { status: status, data: data }
       end
 
-      service = RecipeGenerationService.new
-      recipe_data = service.generate_recipe_from_ingredients(user_ingredients)
+      def show
+        status, data = Api::V1::Recipes::ShowUsecase.new(params[:id], current_user_id).execute
+        render json: { status: status, data: data }
+      end
 
-      recipe = Recipe.create!(
-        user_id: current_user_id,
-        title: recipe_data[:title],
-        ingredients: recipe_data[:ingredients],
-        instructions: recipe_data[:instructions]
-      )
+      def create
+        status, data = Api::V1::Recipes::CreateUsecase.new(recipe_params, current_user_id).execute
+        render json: { status: status, data: data }
+      end
 
-      render_success(recipe, 'Recipe generated successfully')
-    rescue => e
-      render_error("Failed to generate recipe: #{e.message}")
+      def generate
+        status, data = Api::V1::Recipes::GenerateUsecase.new(current_user_id).execute
+        render json: { status: status, data: data }
+      end
+
+      def destroy
+        status, data = Api::V1::Recipes::DestroyUsecase.new(params[:id], current_user_id).execute
+        render json: { status: status, data: data }
+      end
+
+      private
+
+      def recipe_params
+        params.require(:recipe).permit(:title, :instructions, ingredients: [])
+      end
     end
-  end
-
-  def destroy
-    @recipe.destroy
-    render_success(nil, 'Recipe deleted successfully')
-  end
-
-  private
-
-  def set_recipe
-    @recipe = Recipe.by_user(current_user_id).find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    render_error('Recipe not found', :not_found)
-  end
-
-  def recipe_params
-    params.require(:recipe).permit(:title, :instructions, ingredients: [])
   end
 end

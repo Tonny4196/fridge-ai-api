@@ -3,7 +3,7 @@ source "https://rubygems.org"
 ruby "3.1.0"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 6.1.0"
+gem "rails", "~> 7.2.0"
 
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
@@ -46,6 +46,9 @@ gem "dotenv-rails"
 
 # JSON parsing
 gem "oj"
+
+# JSON serializer
+gem "blueprinter"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
