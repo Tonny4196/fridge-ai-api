@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Root route
+  root "rails/health#show"
+  
   namespace :api do
     namespace :v1 do
       resources :ingredients do
