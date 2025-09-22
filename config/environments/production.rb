@@ -84,8 +84,14 @@ Rails.application.configure do
   # Allow Railway hosts
   config.hosts = [
     /.*\.railway\.app/,           # Railway production domains
-    /.*\.up\.railway\.app/        # Railway preview domains
+    /.*\.up\.railway\.app/,       # Railway preview domains
+    /.*\.railway\.internal/       # Railway internal domains
   ]
+  
+  # During development/deployment, allow all hosts temporarily
+  if ENV['RAILWAY_ENVIRONMENT_NAME'].present?
+    config.hosts.clear
+  end
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end
