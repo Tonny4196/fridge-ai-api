@@ -45,13 +45,20 @@ class IngredientAnalysisService
       Rails.logger.info "Usage: #{response.dig('usage')}"
       
       parse_ingredients_response(response.dig("choices", 0, "message", "content"))
+    rescue Faraday::TooManyRequestsError => e
+      Rails.logger.error "=== OpenAI API Rate Limit Error ==="
+      Rails.logger.error "Rate limit exceeded. Please wait before trying again."
+      Rails.logger.error "Error message: #{e.message}"
+      
+      # レート制限エラー時は分かりやすいメッセージを返す
+      []
     rescue => e
       Rails.logger.error "=== OpenAI Vision API Error ==="
       Rails.logger.error "Error class: #{e.class}"
       Rails.logger.error "Error message: #{e.message}"
       Rails.logger.error "Backtrace: #{e.backtrace.join('\n')}"
       
-      # エラー時は空の配列を返す
+      # その他のエラー時は空の配列を返す
       []
     end
   end

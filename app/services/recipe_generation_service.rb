@@ -38,13 +38,24 @@ class RecipeGenerationService
       Rails.logger.info "Usage: #{response.dig('usage')}"
       
       parse_recipe_response(response.dig("choices", 0, "message", "content"))
+    rescue Faraday::TooManyRequestsError => e
+      Rails.logger.error "=== OpenAI API Rate Limit Error ==="
+      Rails.logger.error "Rate limit exceeded for recipe generation. Please wait before trying again."
+      Rails.logger.error "Error message: #{e.message}"
+      
+      # レート制限エラー時は分かりやすいメッセージを返す
+      {
+        title: "レシピ生成に失敗しました（レート制限）",
+        ingredients: [],
+        instructions: "申し訳ございませんが、AIサービスの利用制限に達しました。しばらく時間をおいてから再度お試しください。"
+      }
     rescue => e
       Rails.logger.error "=== OpenAI Recipe Generation API Error ==="
       Rails.logger.error "Error class: #{e.class}"
       Rails.logger.error "Error message: #{e.message}"
       Rails.logger.error "Backtrace: #{e.backtrace.join('\n')}"
       
-      # エラー時はデフォルトレスポンスを返す
+      # その他のエラー時はデフォルトレスポンスを返す
       {
         title: "レシピ生成に失敗しました（APIエラー）",
         ingredients: [],
