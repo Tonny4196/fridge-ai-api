@@ -36,11 +36,18 @@ module Api
             
             setup_new_user(user)
             
+            # サインアップ後、すぐにサインインしてトークンを取得
+            auth_response = cognito_service.sign_in(@form.email, @form.password)
+            
             ['success', {
               user: UserBlueprint.render_as_hash(user),
+              access_token: auth_response[:access_token],
+              id_token: auth_response[:id_token], 
+              refresh_token: auth_response[:refresh_token],
+              expires_in: auth_response[:expires_in],
+              token_type: auth_response[:token_type],
               message: 'Sign up successful! Welcome to the app!',
-              is_new_user: true,
-              next_step: 'Please sign in to get access tokens'
+              is_new_user: true
             }]
             
           rescue ::AuthenticationError => e
