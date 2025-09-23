@@ -5,12 +5,12 @@ module Api
       skip_before_action :authenticate_user!, only: [:sign_up, :sign_in]
 
       def sign_up
-        status, data = Api::V1::Auth::SignUpUsecase.new(auth_token).execute
+        status, data = Api::V1::Auth::SignUpUsecase.new(auth_params).execute
         render json: { status: status, data: data }
       end
 
       def sign_in
-        status, data = Api::V1::Auth::SignInUsecase.new(auth_token).execute
+        status, data = Api::V1::Auth::SignInUsecase.new(auth_params).execute
         render json: { status: status, data: data }
       end
 
@@ -21,8 +21,8 @@ module Api
 
       private
 
-      def auth_token
-        request.headers['Authorization']
+      def auth_params
+        params.permit(:email, :password)
       end
     end
   end

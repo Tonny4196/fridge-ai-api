@@ -2,8 +2,8 @@ module Api
   module V1
     module Auth
       class SignUpUsecase
-        def initialize(token)
-          @form = SignInForm.new(token: token)  # 同じFormを使用
+        def initialize(params)
+          @form = AuthForm.new(params)
         end
 
         def execute
@@ -12,30 +12,32 @@ module Api
           end
 
           begin
-            auth_service = SupabaseAuthService.new
-            
-            # まず既存ユーザーかチェック
-            user_data = auth_service.get_user_data_from_token(@form.formatted_token)
-            existing_user = User.find_by(supabase_uid: user_data['sub'])
-            
+            # 既存ユーザーのチェック
+            existing_user = User.find_by(email: @form.email)
             if existing_user
-              # 既存ユーザーがsign_upエンドポイントを使用
-              ['error', 'User already exists. Please use sign_in instead.']
-            else
-              # 新規ユーザーとして処理
-              user = auth_service.verify_token(@form.formatted_token)
-              setup_new_user(user)
-              
-              ['success', {
-                user: UserBlueprint.render_as_hash(user),
-                message: 'Sign up successful! Welcome to the app!',
-                is_new_user: true,
-                next_step: 'tutorial'
-              }]
+              return ['error', 'User already exists. Please use sign_in instead.']
             end
+
+            # Supabaseに新規ユーザーを作成
+            supabase_service = SupabaseApiService.new
+            supabase_response = supabase_service.sign_up(@form.email, @form.password)
+            
+            # ローカルDBにユーザーを作成
+            user = create_local_user(supabase_response)
+            setup_new_user(user)
+            
+            ['success', {
+              user: UserBlueprint.render_as_hash(user),
+              access_token: supabase_response['access_token'],
+              refresh_token: supabase_response['refresh_token'],
+              expires_in: supabase_response['expires_in'],
+              message: 'Sign up successful! Welcome to the app!',
+              is_new_user: true,
+              next_step: 'tutorial'
+            }]
             
           rescue ::AuthenticationError => e
-            ['error', "Authentication failed: #{e.message}"]
+            ['error', e.message]
           rescue => e
             Rails.logger.error "=== Auth Sign Up Error ==="
             Rails.logger.error "Error: #{e.message}"
@@ -45,6 +47,16 @@ module Api
         end
 
         private
+
+        def create_local_user(supabase_response)
+          user_data = supabase_response['user']
+          
+          User.create!(
+            supabase_uid: user_data['id'],
+            email: user_data['email'],
+            name: user_data['user_metadata']&.dig('name') || user_data['email']&.split('@')&.first
+          )
+        end
 
         def setup_new_user(user)
           Rails.logger.info "=== Setting up new user: #{user.id} ==="
