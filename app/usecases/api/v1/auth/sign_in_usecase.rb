@@ -17,7 +17,8 @@ module Api
             
             ['success', {
               user: UserBlueprint.render_as_hash(user),
-              message: 'Sign in successful'
+              message: 'Sign in successful',
+              is_new_user: false
             }]
           rescue ::AuthenticationError => e
             ['error', "Authentication failed: #{e.message}"]

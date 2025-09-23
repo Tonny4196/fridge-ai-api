@@ -9,23 +9,14 @@ class SupabaseAuthService
     @supabase_jwt_secret = ENV['SUPABASE_JWT_SECRET']
   end
 
-  # JWTトークンを検証してユーザー情報を返す
-  def verify_token(token)
+  # JWTトークンからユーザーデータを取得（DBには保存しない）
+  def get_user_data_from_token(token)
     return nil unless token
 
     begin
       # JWTトークンをデコード
       payload = JWT.decode(token, @supabase_jwt_secret, true, { algorithm: 'HS256' })
-      user_data = payload[0]
-      
-      Rails.logger.info "=== Supabase Auth: Token verified ==="
-      Rails.logger.info "User ID: #{user_data['sub']}"
-      Rails.logger.info "Email: #{user_data['email']}"
-      Rails.logger.info "Role: #{user_data['role']}"
-      
-      # ユーザーをデータベースで検索または作成
-      find_or_create_user(user_data)
-      
+      payload[0]
     rescue JWT::DecodeError => e
       Rails.logger.error "=== JWT Decode Error ==="
       Rails.logger.error "Error: #{e.message}"
@@ -37,6 +28,20 @@ class SupabaseAuthService
       Rails.logger.error "Backtrace: #{e.backtrace.join('\n')}"
       raise ::AuthenticationError, "Authentication failed: #{e.message}"
     end
+  end
+
+  # JWTトークンを検証してユーザー情報を返す
+  def verify_token(token)
+    user_data = get_user_data_from_token(token)
+    return nil unless user_data
+
+    Rails.logger.info "=== Supabase Auth: Token verified ==="
+    Rails.logger.info "User ID: #{user_data['sub']}"
+    Rails.logger.info "Email: #{user_data['email']}"
+    Rails.logger.info "Role: #{user_data['role']}"
+    
+    # ユーザーをデータベースで検索または作成
+    find_or_create_user(user_data)
   end
 
   private
@@ -51,7 +56,7 @@ class SupabaseAuthService
     user = User.find_by(supabase_uid: supabase_uid)
     
     if user
-      # 既存ユーザーの情報を更新
+      # 既存ユーザーの情報を更新（ただし、created_atは変更しない）
       user.update!(
         email: email,
         name: name
