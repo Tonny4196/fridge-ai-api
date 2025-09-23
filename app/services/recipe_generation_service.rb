@@ -94,11 +94,15 @@ class RecipeGenerationService
   end
 
   def parse_recipe_response(content)
+    # マークダウンのコードブロックを除去
+    cleaned_content = content.gsub(/```json\s*/, '').gsub(/```\s*$/, '').strip
+    
     # JSON文字列からRubyオブジェクトに変換
-    JSON.parse(content, symbolize_names: true)
+    JSON.parse(cleaned_content, symbolize_names: true)
   rescue JSON::ParserError => e
     Rails.logger.error "Failed to parse recipe response: #{e.message}"
-    Rails.logger.error "Response content: #{content}"
+    Rails.logger.error "Original content: #{content}"
+    Rails.logger.error "Cleaned content: #{cleaned_content}"
     
     # パース失敗時は基本的なレシピ構造を返す
     {
