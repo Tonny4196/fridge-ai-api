@@ -6,24 +6,36 @@ class RecipeGenerationService
   def generate_recipe_from_ingredients(ingredients)
     ingredient_list = ingredients.map { |ing| "#{ing.name}（#{ing.quantity}）" }.join("、")
     
-    response = @client.chat(
-      parameters: {
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: system_prompt
-          },
-          {
-            role: "user",
-            content: "食材: #{ingredient_list}"
-          }
-        ],
-        max_tokens: 1500,
-        temperature: 0.7
-      }
-    )
-
+    request_params = {
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: system_prompt
+        },
+        {
+          role: "user",
+          content: "食材: #{ingredient_list}"
+        }
+      ],
+      max_tokens: 1500,
+      temperature: 0.7
+    }
+    
+    Rails.logger.info "=== OpenAI Recipe Generation API Request ==="
+    Rails.logger.info "Model: #{request_params[:model]}"
+    Rails.logger.info "System prompt: #{system_prompt}"
+    Rails.logger.info "User prompt: 食材: #{ingredient_list}"
+    Rails.logger.info "Max tokens: #{request_params[:max_tokens]}"
+    Rails.logger.info "Temperature: #{request_params[:temperature]}"
+    
+    response = @client.chat(parameters: request_params)
+    
+    Rails.logger.info "=== OpenAI Recipe Generation API Response ==="
+    Rails.logger.info "Full response: #{response.to_json}"
+    Rails.logger.info "Content: #{response.dig('choices', 0, 'message', 'content')}"
+    Rails.logger.info "Usage: #{response.dig('usage')}"
+    
     parse_recipe_response(response.dig("choices", 0, "message", "content"))
   end
 
