@@ -28,7 +28,7 @@ class SupabaseApiService
     response = faraday_client.post('/auth/v1/token') do |req|
       req.headers['Content-Type'] = 'application/json'
       req.body = {
-        grant_type: 'refresh_token',
+        grant_type: 'password',
         email: email,
         password: password
       }.to_json
