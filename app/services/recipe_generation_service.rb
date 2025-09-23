@@ -7,7 +7,7 @@ class RecipeGenerationService
     ingredient_list = ingredients.map { |ing| "#{ing.name}（#{ing.quantity}）" }.join("、")
     
     request_params = {
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",

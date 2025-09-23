@@ -7,7 +7,7 @@ class IngredientAnalysisService
     image_data = encode_image(image_file)
     
     request_params = {
-      model: "gpt-4-vision-preview",
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
