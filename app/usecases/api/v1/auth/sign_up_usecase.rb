@@ -18,27 +18,29 @@ module Api
               return ['error', 'User already exists. Please use sign_in instead.']
             end
 
-            # Supabaseに新規ユーザーを作成（トリガーで自動的にpublic.usersにも作成される）
-            supabase_service = SupabaseApiService.new
-            supabase_response = supabase_service.sign_up(@form.email, @form.password)
+            # AWS Cognitoに新規ユーザーを作成
+            cognito_service = AwsCognitoAuthService.new
+            cognito_user = cognito_service.sign_up(@form.email, @form.password)
             
-            # Supabaseトリガーで作成されたユーザーを取得
-            user_id = supabase_response['id']
+            # Cognitoのサブジェクト（sub）を取得
+            cognito_sub = cognito_user.attributes.find { |attr| attr.name == 'sub' }&.value
             
-            # 少し待ってからトリガーで作成されたユーザーを取得
-            sleep(0.1) # トリガー実行を待つ
-            user = User.find(user_id)
+            # ローカルデータベースにユーザーを作成
+            user = User.create!(
+              id: SecureRandom.uuid,
+              cognito_sub: cognito_sub,
+              email: @form.email,
+              email_verified: true,
+              name: @form.email.split('@').first
+            )
             
             setup_new_user(user)
             
             ['success', {
               user: UserBlueprint.render_as_hash(user),
-              access_token: supabase_response['access_token'],
-              refresh_token: supabase_response['refresh_token'],
-              expires_in: supabase_response['expires_in'],
               message: 'Sign up successful! Welcome to the app!',
               is_new_user: true,
-              next_step: 'tutorial'
+              next_step: 'Please sign in to get access tokens'
             }]
             
           rescue ::AuthenticationError => e
