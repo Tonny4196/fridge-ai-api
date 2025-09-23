@@ -6,31 +6,43 @@ class IngredientAnalysisService
   def analyze_fridge_image(image_file)
     image_data = encode_image(image_file)
     
-    response = @client.chat(
-      parameters: {
-        model: "gpt-4-vision-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: analyze_prompt
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: "data:image/jpeg;base64,#{image_data}"
-                }
+    request_params = {
+      model: "gpt-4-vision-preview",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: analyze_prompt
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: "data:image/jpeg;base64,#{image_data[0..50]}..." # 最初の50文字のみログ
               }
-            ]
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.3
-      }
-    )
-
+            }
+          ]
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.3
+    }
+    
+    Rails.logger.info "=== OpenAI Vision API Request ==="
+    Rails.logger.info "Model: #{request_params[:model]}"
+    Rails.logger.info "Prompt: #{analyze_prompt}"
+    Rails.logger.info "Image data length: #{image_data.length} characters"
+    Rails.logger.info "Max tokens: #{request_params[:max_tokens]}"
+    Rails.logger.info "Temperature: #{request_params[:temperature]}"
+    
+    response = @client.chat(parameters: request_params)
+    
+    Rails.logger.info "=== OpenAI Vision API Response ==="
+    Rails.logger.info "Full response: #{response.to_json}"
+    Rails.logger.info "Content: #{response.dig('choices', 0, 'message', 'content')}"
+    Rails.logger.info "Usage: #{response.dig('usage')}"
+    
     parse_ingredients_response(response.dig("choices", 0, "message", "content"))
   end
 
