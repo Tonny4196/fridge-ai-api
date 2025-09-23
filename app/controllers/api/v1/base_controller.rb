@@ -22,8 +22,8 @@ module Api
         end
 
         begin
-          auth_service = SupabaseAuthService.new
-          @current_user = auth_service.verify_token(auth_token)
+          cognito_service = AwsCognitoService.new
+          @current_user = cognito_service.verify_token(auth_token)
         rescue ::AuthenticationError => e
           render json: { status: 'error', data: "Authentication failed: #{e.message}" }, status: :unauthorized
         rescue => e
