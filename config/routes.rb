@@ -4,6 +4,10 @@ Rails.application.routes.draw do
   
   namespace :api do
     namespace :v1 do
+      # 認証関連
+      post 'auth/verify', to: 'auth#verify'
+      get 'auth/me', to: 'auth#me'
+      
       resources :ingredients do
         collection do
           post :analyze_image

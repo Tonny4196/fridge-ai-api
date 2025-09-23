@@ -118,6 +118,8 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.13.2)
+    jwt (3.1.2)
+      base64
     logger (1.7.0)
     loofah (2.24.1)
       crass (~> 1.0.2)
@@ -243,6 +245,7 @@ DEPENDENCIES
   dotenv-rails
   faraday
   image_processing (~> 1.2)
+  jwt
   oj
   pg (~> 1.1)
   puma (>= 5.0)
