@@ -18,12 +18,17 @@ module Api
               return ['error', 'User already exists. Please use sign_in instead.']
             end
 
-            # Supabaseに新規ユーザーを作成
+            # Supabaseに新規ユーザーを作成（トリガーで自動的にpublic.usersにも作成される）
             supabase_service = SupabaseApiService.new
             supabase_response = supabase_service.sign_up(@form.email, @form.password)
             
-            # ローカルDBにユーザーを作成
-            user = create_local_user(supabase_response)
+            # Supabaseトリガーで作成されたユーザーを取得
+            user_id = supabase_response['user']['id']
+            
+            # 少し待ってからトリガーで作成されたユーザーを取得
+            sleep(0.1) # トリガー実行を待つ
+            user = User.find(user_id)
+            
             setup_new_user(user)
             
             ['success', {
@@ -47,16 +52,6 @@ module Api
         end
 
         private
-
-        def create_local_user(supabase_response)
-          user_data = supabase_response['user']
-          
-          User.create!(
-            supabase_uid: user_data['id'],
-            email: user_data['email'],
-            name: user_data['user_metadata']&.dig('name') || user_data['email']&.split('@')&.first
-          )
-        end
 
         def setup_new_user(user)
           Rails.logger.info "=== Setting up new user: #{user.id} ==="

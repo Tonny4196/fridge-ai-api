@@ -16,18 +16,9 @@ module Api
             supabase_service = SupabaseApiService.new
             supabase_response = supabase_service.sign_in(@form.email, @form.password)
             
-            # ローカルDBのユーザーを取得
-            user_data = supabase_response['user']
-            user = User.find_by(supabase_uid: user_data['id'])
-            
-            unless user
-              # ローカルDBにユーザーが存在しない場合は作成
-              user = User.create!(
-                supabase_uid: user_data['id'],
-                email: user_data['email'],
-                name: user_data['user_metadata']&.dig('name') || user_data['email']&.split('@')&.first
-              )
-            end
+            # public.usersからユーザーを取得（Supabaseトリガーで自動作成済み）
+            user_id = supabase_response['user']['id']
+            user = User.find(user_id)
             
             # ログイン時の処理（最終ログイン時刻更新など）
             update_sign_in_info(user)
