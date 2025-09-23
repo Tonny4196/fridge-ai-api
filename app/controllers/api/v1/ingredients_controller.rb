@@ -27,7 +27,7 @@ module Api
       end
 
       def analyze_image
-        status, data = Api::V1::Ingredients::AnalyzeImageUsecase.new(params[:image], current_user_id).execute
+        status, data = Api::V1::Ingredients::AnalyzeImageUsecase.new(params[:image_url], current_user_id).execute
         render json: { status: status, data: data }
       end
 

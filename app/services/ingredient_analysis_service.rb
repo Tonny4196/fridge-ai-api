@@ -3,8 +3,8 @@ class IngredientAnalysisService
     @client = OpenAI::Client.new(access_token: ENV['OPENAI_ACCESS_TOKEN'])
   end
 
-  def analyze_fridge_image(image_file)
-    image_data = encode_image(image_file)
+  def analyze_fridge_image(image_url)
+    Rails.logger.info "Analyzing image from URL: #{image_url}"
     
     request_params = {
       model: "gpt-4o",
@@ -19,7 +19,7 @@ class IngredientAnalysisService
             {
               type: "image_url",
               image_url: {
-                url: "data:image/jpeg;base64,#{image_data[0..50]}..." # 最初の50文字のみログ
+                url: image_url
               }
             }
           ]
@@ -32,7 +32,7 @@ class IngredientAnalysisService
     Rails.logger.info "=== OpenAI Vision API Request ==="
     Rails.logger.info "Model: #{request_params[:model]}"
     Rails.logger.info "Prompt: #{analyze_prompt}"
-    Rails.logger.info "Image data length: #{image_data.length} characters"
+    Rails.logger.info "Image URL: #{image_url}"
     Rails.logger.info "Max tokens: #{request_params[:max_tokens]}"
     Rails.logger.info "Temperature: #{request_params[:temperature]}"
     
@@ -64,10 +64,6 @@ class IngredientAnalysisService
   end
 
   private
-
-  def encode_image(image_file)
-    Base64.strict_encode64(image_file.read)
-  end
 
   def analyze_prompt
     <<~PROMPT

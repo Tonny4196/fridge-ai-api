@@ -2,19 +2,19 @@ module Api
   module V1
     module Ingredients
       class AnalyzeImageUsecase
-        def initialize(image_file, user_id)
-          @image_file = image_file
+        def initialize(image_url, user_id)
+          @image_url = image_url
           @user_id = user_id
         end
 
         def execute
-          unless @image_file.present?
-            return ['error', 'Image is required']
+          unless @image_url.present?
+            return ['error', 'Image URL is required']
           end
 
           begin
             service = IngredientAnalysisService.new
-            ingredients_data = service.analyze_fridge_image(@image_file)
+            ingredients_data = service.analyze_fridge_image(@image_url)
             
             created_ingredients = []
             ingredients_data.each do |ingredient_data|
