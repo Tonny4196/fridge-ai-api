@@ -14,8 +14,13 @@ class AuthForm
   }
   validates :password, presence: { message: 'Password is required' }
   validates :password, length: { 
-    minimum: 6, 
-    message: 'Password must be at least 6 characters',
+    minimum: 8, 
+    message: 'Password must be at least 8 characters',
+    allow_blank: true
+  }
+  validates :password, format: {
+    with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).+\z/,
+    message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol',
     allow_blank: true
   }
 end
