@@ -17,7 +17,7 @@ module Api
             supabase_response = supabase_service.sign_in(@form.email, @form.password)
             
             # public.usersからユーザーを取得（Supabaseトリガーで自動作成済み）
-            user_id = supabase_response['user']['id']
+            user_id = supabase_response['id']
             user = User.find(user_id)
             
             # ログイン時の処理（最終ログイン時刻更新など）
