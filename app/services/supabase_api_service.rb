@@ -25,9 +25,10 @@ class SupabaseApiService
 
   # サインイン（ログイン）
   def sign_in(email, password)
-    response = faraday_client.post('/auth/v1/signin') do |req|
+    response = faraday_client.post('/auth/v1/token') do |req|
       req.headers['Content-Type'] = 'application/json'
       req.body = {
+        grant_type: 'refresh_token',
         email: email,
         password: password
       }.to_json
