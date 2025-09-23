@@ -1,28 +1,28 @@
 module Api
   module V1
     module Auth
-      class VerifyUsecase
+      class SignInUsecase
         def initialize(token)
-          @token = token
+          @form = SignInForm.new(token: token)
         end
 
         def execute
-          unless @token.present?
-            return ['error', 'Authorization token is required']
+          unless @form.valid?
+            return ['error', @form.errors.full_messages.join(', ')]
           end
 
           begin
             auth_service = SupabaseAuthService.new
-            user = auth_service.verify_token(@token)
+            user = auth_service.verify_token(@form.formatted_token)
             
             ['success', {
               user: UserBlueprint.render_as_hash(user),
-              message: 'Token verified successfully'
+              message: 'Sign in successful'
             }]
-          rescue SupabaseAuthService::AuthenticationError => e
+          rescue ::AuthenticationError => e
             ['error', "Authentication failed: #{e.message}"]
           rescue => e
-            Rails.logger.error "=== Auth Verify Error ==="
+            Rails.logger.error "=== Auth Sign In Error ==="
             Rails.logger.error "Error: #{e.message}"
             Rails.logger.error "Backtrace: #{e.backtrace.join('\n')}"
             ['error', 'Internal authentication error']

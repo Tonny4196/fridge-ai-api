@@ -24,7 +24,7 @@ module Api
         begin
           auth_service = SupabaseAuthService.new
           @current_user = auth_service.verify_token(auth_token)
-        rescue SupabaseAuthService::AuthenticationError => e
+        rescue ::AuthenticationError => e
           render json: { status: 'error', data: "Authentication failed: #{e.message}" }, status: :unauthorized
         rescue => e
           Rails.logger.error "=== Authentication Error ==="

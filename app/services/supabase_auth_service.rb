@@ -3,7 +3,6 @@ require 'net/http'
 require 'json'
 
 class SupabaseAuthService
-  class AuthenticationError < StandardError; end
   
   def initialize
     @supabase_url = ENV['SUPABASE_URL']
@@ -15,9 +14,6 @@ class SupabaseAuthService
     return nil unless token
 
     begin
-      # Bearerプレフィックスを除去
-      token = token.gsub(/^Bearer\s+/, '')
-      
       # JWTトークンをデコード
       payload = JWT.decode(token, @supabase_jwt_secret, true, { algorithm: 'HS256' })
       user_data = payload[0]
@@ -34,12 +30,12 @@ class SupabaseAuthService
       Rails.logger.error "=== JWT Decode Error ==="
       Rails.logger.error "Error: #{e.message}"
       Rails.logger.error "Token: #{token[0..20]}..." if token
-      raise AuthenticationError, "Invalid token: #{e.message}"
+      raise ::AuthenticationError, "Invalid token: #{e.message}"
     rescue => e
       Rails.logger.error "=== Supabase Auth Error ==="
       Rails.logger.error "Error: #{e.message}"
       Rails.logger.error "Backtrace: #{e.backtrace.join('\n')}"
-      raise AuthenticationError, "Authentication failed: #{e.message}"
+      raise ::AuthenticationError, "Authentication failed: #{e.message}"
     end
   end
 
