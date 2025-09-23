@@ -23,7 +23,7 @@ module Api
             supabase_response = supabase_service.sign_up(@form.email, @form.password)
             
             # Supabaseトリガーで作成されたユーザーを取得
-            user_id = supabase_response['user']['id']
+            user_id = supabase_response['id']
             
             # 少し待ってからトリガーで作成されたユーザーを取得
             sleep(0.1) # トリガー実行を待つ
