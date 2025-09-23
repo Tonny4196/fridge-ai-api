@@ -36,14 +36,24 @@ class IngredientAnalysisService
     Rails.logger.info "Max tokens: #{request_params[:max_tokens]}"
     Rails.logger.info "Temperature: #{request_params[:temperature]}"
     
-    response = @client.chat(parameters: request_params)
-    
-    Rails.logger.info "=== OpenAI Vision API Response ==="
-    Rails.logger.info "Full response: #{response.to_json}"
-    Rails.logger.info "Content: #{response.dig('choices', 0, 'message', 'content')}"
-    Rails.logger.info "Usage: #{response.dig('usage')}"
-    
-    parse_ingredients_response(response.dig("choices", 0, "message", "content"))
+    begin
+      response = @client.chat(parameters: request_params)
+      
+      Rails.logger.info "=== OpenAI Vision API Response ==="
+      Rails.logger.info "Full response: #{response.to_json}"
+      Rails.logger.info "Content: #{response.dig('choices', 0, 'message', 'content')}"
+      Rails.logger.info "Usage: #{response.dig('usage')}"
+      
+      parse_ingredients_response(response.dig("choices", 0, "message", "content"))
+    rescue => e
+      Rails.logger.error "=== OpenAI Vision API Error ==="
+      Rails.logger.error "Error class: #{e.class}"
+      Rails.logger.error "Error message: #{e.message}"
+      Rails.logger.error "Backtrace: #{e.backtrace.join('\n')}"
+      
+      # エラー時は空の配列を返す
+      []
+    end
   end
 
   private
