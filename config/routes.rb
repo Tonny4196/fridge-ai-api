@@ -4,6 +4,11 @@ Rails.application.routes.draw do
   
   namespace :api do
     namespace :v1 do
+      # 認証関連
+      post 'auth/sign_up', to: 'auth#sign_up'
+      post 'auth/sign_in', to: 'auth#sign_in'
+      get 'auth/me', to: 'auth#me'
+      
       resources :ingredients do
         collection do
           post :analyze_image
